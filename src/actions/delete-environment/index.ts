@@ -13,10 +13,11 @@ export async function main(factory: RunnerFactory): Promise<void> {
     try {
         core.startGroup('delete-environment:');
         const pac = factory.getRunner('pac', process.cwd());
-        const envUrl = core.getInput('environment-url', { required: true });
+        const envId = core.getInput('environment-id', { required: true });
+        core.debug('deleting envId: '+ envId);
         await new AuthHandler(pac).authenticate(AuthKind.ADMIN);
 
-        const deleteEnvArgs = ['admin', 'delete', '--url', envUrl];
+        const deleteEnvArgs = ['admin', 'delete', '-id', envId];
         await pac.run(deleteEnvArgs);
         core.info('environment deleted');
         core.endGroup();

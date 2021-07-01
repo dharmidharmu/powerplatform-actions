@@ -430,10 +430,11 @@ function main(factory) {
             const createEnvironmentArgs = ['admin', 'create', '--name', envName, '--region', envRegion, '--type', envType, '--domain', domain];
             const result = yield pac.run(createEnvironmentArgs);
             // HACK TODO: Need structured output from pac CLI to make parsing out of the resulting env URL more robust
-            const envUrl = (_a = result
-                .filter(l => l.length > 0)
-                .pop()) === null || _a === void 0 ? void 0 : _a.trim().split(/\s+/).shift();
+            const arr = (_a = result.filter(l => l.length > 0).pop()) === null || _a === void 0 ? void 0 : _a.trim().split(/\s+/);
+            const envUrl = arr === null || arr === void 0 ? void 0 : arr.shift();
+            const envId = arr === null || arr === void 0 ? void 0 : arr.shift();
             core.setOutput('environment-url', envUrl);
+            core.setOutput('environment-id', envId);
             core.endGroup();
         }
         catch (error) {

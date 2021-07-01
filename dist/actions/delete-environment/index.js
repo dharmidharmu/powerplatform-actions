@@ -421,9 +421,10 @@ function main(factory) {
         try {
             core.startGroup('delete-environment:');
             const pac = factory.getRunner('pac', process.cwd());
-            const envUrl = core.getInput('environment-url', { required: true });
+            const envId = core.getInput('environment-id', { required: true });
+            core.debug('deleting envId: ' + envId);
             yield new lib_1.AuthHandler(pac).authenticate(lib_1.AuthKind.ADMIN);
-            const deleteEnvArgs = ['admin', 'delete', '--url', envUrl];
+            const deleteEnvArgs = ['admin', 'delete', '-id', envId];
             yield pac.run(deleteEnvArgs);
             core.info('environment deleted');
             core.endGroup();

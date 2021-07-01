@@ -10725,7 +10725,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 // Licensed under the MIT License.
 const core = __webpack_require__(2186);
 const artifact = __webpack_require__(2605);
-const glob_1 = __webpack_require__(1957);
+// import { glob } from 'glob';
 const lib_1 = __webpack_require__(2806);
 const path = __webpack_require__(5622);
 const fs = __webpack_require__(5630);
@@ -10757,9 +10757,9 @@ const logger = new lib_1.ActionLogger();
     }
     yield pac.run(checkArgs);
     const artifactClient = artifact.create();
-    const files = glob_1.glob.sync('**/*', { cwd: outputDirectory, absolute: true });
+    // const files = glob.sync('**/*', { cwd: outputDirectory, absolute: true });
     const options = { continueOnError: true };
-    yield artifactClient.uploadArtifact(artifactName, files, outputDirectory, options);
+    // await artifactClient.uploadArtifact(artifactName, files, outputDirectory, options);
     core.info(`checked solution results in folder [${outputDirectory}] and uploaded as artifacts.`);
     core.endGroup();
 }))().catch(error => {

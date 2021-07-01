@@ -14,11 +14,11 @@ describe('delete-environment#input validation', () => {
     // TODO: read in params and their required state from the action.yml
 
     const requiredParams = [
-        { Name: 'environment-url', Value: 'aUrl' }
+        { Name: 'environment-id', Value: 'aUrl' }
     ];
 
     const inputParams = [
-        { Name: 'environment-url', Value: 'aUrl' },
+        { Name: 'environment-id', Value: 'aUrl' },
         { Name: 'user-name', Value: 'aUserName' },
         { Name: 'password-secret', Value: 'aSecret' },
     ];
@@ -51,6 +51,6 @@ describe('delete-environment#input validation', () => {
         expect(err).to.be.undefined;
         const loggedCommands = mockFactory.loggedCommands;
         expect(loggedCommands).to.deep.include({ RunnerName: 'pac', Arguments: [ 'auth', 'create', '--kind', 'ADMIN', '--username', 'aUserName', '--password', 'aSecret'] });
-        expect(loggedCommands).to.deep.include({ RunnerName: 'pac', Arguments: [ 'admin', 'delete', '--url', 'aUrl' ] });
+        expect(loggedCommands).to.deep.include({ RunnerName: 'pac', Arguments: [ 'admin', 'delete', '-id', 'aUrl' ] });
     }).timeout(5000);
 });

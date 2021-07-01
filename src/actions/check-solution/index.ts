@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 import * as core from '@actions/core';
 import * as artifact from '@actions/artifact';
-import { glob } from 'glob';
+// import { glob } from 'glob';
 import { ActionLogger, AuthHandler, AuthKind, getWorkingDirectory, PacRunner } from '../../lib';
 import path = require('path');
 import fs = require('fs-extra');
@@ -42,9 +42,9 @@ const logger = new ActionLogger();
     await pac.run(checkArgs);
 
     const artifactClient = artifact.create();
-    const files = glob.sync('**/*', { cwd: outputDirectory, absolute: true });
+    // const files = glob.sync('**/*', { cwd: outputDirectory, absolute: true });
     const options = { continueOnError: true };
-    await artifactClient.uploadArtifact(artifactName, files, outputDirectory, options);
+    // await artifactClient.uploadArtifact(artifactName, files, outputDirectory, options);
     core.info(`checked solution results in folder [${outputDirectory}] and uploaded as artifacts.`);
     core.endGroup();
 
