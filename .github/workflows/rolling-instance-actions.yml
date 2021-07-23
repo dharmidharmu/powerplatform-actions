@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [windows-latest]
       fail-fast: false
     env:
       RUNNER_DEBUG: 1
@@ -29,6 +29,22 @@ jobs:
     - uses: actions/checkout@v2
       with:
         lfs: true
+
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2-beta
+      with:
+        node-version: 14.x
+        registry-url: https://npm.pkg.github.com
+
+    - name: Build and test
+      run: |
+        npm config set //npm.pkg.github.com/:_authToken=${{ secrets.GPR_ACCESS_TOKEN }}
+        npm ci
+      env:
+        AZ_DevOps_Read_PAT: ${{ secrets.AZ_DevOps_Read_PAT }}
+
+    - name: Download CDSStarterPortal package from portal authenticated feed
+      run: gulp fetchPortalPackage --feedPAT ${{ secrets.OneCRM_DevOps_Read_PAT }}
 
     - name: Test create-source-environment action with appId-clientSecret
       uses: ./create-environment
@@ -42,95 +58,7 @@ jobs:
         region: unitedstates
         domain: test-source
 
-    - name: Test create-target-environment action with username/password
-      uses: ./create-environment
-      id: create-target-environment
-      with:
-        user-name: ${{ env.WF_USERNAME }}
-        password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
-        name: targetEnvironment
-        type: Sandbox
-        region: unitedstates
-        domain: test-target
-
-    - name: Test who-am-i action with username/password
-      uses: ./who-am-i
-      with:
-        environment-url: ${{ steps.create-target-environment.outputs.environment-url }}
-        user-name: ${{ env.WF_USERNAME }}
-        password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
-
-    - name: Test who-am-i action with appId-clientSecret
-      uses: ./who-am-i
-      with:
-        environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
-        app-id: ${{ env.WF_APPID }}
-        client-secret: ${{ secrets.CLIENT_SECRET_PPDEVTOOLS }}
-        tenant-id: ${{ env.WF_TENANT_ID }}
-
-    - name: Test pack-solution action
-      if: matrix.os == 'windows-latest'   # SoPa.exe is windows only
-      uses: ./pack-solution
-      with:
-        solution-folder: 'src/test/data/emptySolution'
-        solution-file: 'out/CI/emptySolution.zip'
-        solution-type: 'Unmanaged'
-
-    - name: Check solution
-      uses: ./check-solution
-      with:
-        environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
-        user-name: ${{ env.WF_USERNAME }}
-        password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
-        path: 'src/test/data/singlePCF.zip'
-
-    - name: Test import-solution action with username/password
-      uses: ./import-solution
-      with:
-        environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
-        user-name: ${{ env.WF_USERNAME }}
-        password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
-        solution-file: 'src/test/data/emptySolution_0_1_0_0.zip'
-        force-overwrite: true
-        run-asynchronously: true
-
-    - name: Test export-solution action with username/password
-      uses: ./export-solution
-      with:
-        environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
-        user-name: ${{ env.WF_USERNAME }}
-        password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
-        solution-name: emptySolution
-        solution-output-file: 'solution1.zip'
-        working-directory: 'out/CI'
-        run-asynchronously: true
-
-    - name: Test unpack-solution action
-      if: matrix.os == 'windows-latest'   # SoPa.exe is windows only
-      uses: ./unpack-solution
-      with:
-        solution-file: 'out/CI/solution1.zip'
-        solution-folder: 'out/CI/solution one'
-        solution-type: 'Unmanaged'
-        overwrite-files: true
-
-    - name: Test clone-solution action with username/password
-      uses: ./clone-solution
-      with:
-        environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
-        user-name: ${{ env.WF_USERNAME }}
-        password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
-        solution-name: emptySolution
-        target-folder: 'out/CI/cloned'
-
-    - name: Test publish-solution action with username/password
-      uses: ./publish-solution
-      with:
-        environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
-        user-name: ${{ env.WF_USERNAME }}
-        password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
-
-    - name: Test deploy-package action with username-password
+    - name: Use deploy-package action with username-password
       if: matrix.os == 'windows-latest'
       uses: ./deploy-package
       with:
@@ -138,44 +66,24 @@ jobs:
         user-name: ${{ env.WF_USERNAME }}
         password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
         tenant-id: ${{ env.WF_TENANT_ID }}
-        package: 'src\test\data\pkgDeployTestData\CDSPackage.dll'
+        package: 'out\portal_package\Adxstudio.CDSStarterPortal.dll'
 
-    - name: Test copy-environment action with username/password
-      if: startsWith(github.event.inputs.runSlowCRUD, 'yes')
-      uses: ./copy-environment
-      with:
-        source-url: ${{ steps.create-source-environment.outputs.environment-url }}
-        target-url: ${{ steps.create-target-environment.outputs.environment-url }}
-        user-name: ${{ env.WF_USERNAME }}
-        password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
-
-    - name: Test backup-environment action with appId-clientSecret
-      if: startsWith(github.event.inputs.runSlowCRUD, 'yes')
-      uses: ./backup-environment
-      with:
-        environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
-        backup-label: test-backup-label
-        app-id: ${{ env.WF_APPID }}
-        client-secret: ${{ secrets.CLIENT_SECRET_PPDEVTOOLS }}
-        tenant-id: ${{ env.WF_TENANT_ID }}
-
-    - name: Test reset-environment action with username/password
-      if: startsWith(github.event.inputs.runSlowCRUD, 'yes')
-      uses: ./reset-environment
+    - name: Test paportal-download action with username/password
+      uses: ./download-paportal
       with:
         environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
         user-name: ${{ env.WF_USERNAME }}
         password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
+        website-id: f46b70cc-580b-4f1a-87c3-41deb48eb90d
+        download-path: ./paportal-download
 
-    - name: Test restore-environment action with username/password
-      if: startsWith(github.event.inputs.runSlowCRUD, 'yes')
-      uses: ./restore-environment
+    - name: Test paportal-upload action with username/password
+      uses: ./upload-paportal
       with:
-        source-url: ${{ steps.create-source-environment.outputs.environment-url }}
-        target-url: ${{ steps.create-target-environment.outputs.environment-url }}
-        selected-backup: latest
+        environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
         user-name: ${{ env.WF_USERNAME }}
         password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
+        upload-path: ./paportal-download/starter-portal
 
     - name: Test delete-source-environment action with appId-clientSecret
       if: always() # Clean up created environments even on failed run
@@ -184,15 +92,6 @@ jobs:
         environment-url: ${{ steps.create-source-environment.outputs.environment-url }}
         user-name: ${{ env.WF_USERNAME }}
         password-secret: ${{ secrets.PASSWORD_PPDEVTOOLS }}
-
-    - name: Test delete-target-environment action with username/password
-      if: always() # Clean up created environments even on failed run
-      uses: ./delete-environment
-      with:
-        environment-url: ${{ steps.create-target-environment.outputs.environment-url }}
-        app-id: ${{ env.WF_APPID }}
-        client-secret: ${{ secrets.CLIENT_SECRET_PPDEVTOOLS }}
-        tenant-id: ${{ env.WF_TENANT_ID }}
 
     - name: Upload pac CLI logs
       if: always()
