@@ -59,7 +59,7 @@ export class AuthHandler {
                 return AuthTypes.APPID_SECRET;
             }
         } catch (error) {
-            core.setFailed(`failed: ${error.message}`);
+            core.setFailed(`failed: ${error}`);
             throw error;
         }
 

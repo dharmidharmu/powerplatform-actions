@@ -33,7 +33,7 @@ export async function main(factory: RunnerFactory): Promise<void> {
         core.info('environment deleted');
         core.endGroup();
     } catch (error) {
-        core.setFailed(`failed: ${error.message}`);
+        core.setFailed(`failed: ${error}`);
         throw error;
     } finally {
         await pac?.run(["auth", "clear"]);

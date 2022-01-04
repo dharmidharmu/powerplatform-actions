@@ -55,6 +55,7 @@ export class ExeRunner {
         });
     }
 
+
     public runSync(args: string[]): string[] {
         this.logger.info(`exe: ${this._exePath}, first arg of ${args.length}: ${args.length ? args[0]: '<none>'}`);
         const proc = spawnSync(this._exePath, args, {
@@ -66,8 +67,8 @@ export class ExeRunner {
 
         if (proc.status === 0) {
             const output = proc.output
-                .filter(line => !!line)     // can have null entries
-                .map(line => line.toString());
+                .filter((line): line is Buffer => line !== null)     // can have null entries
+                .map(line => line?.toString());
             this.logger.info(`success: ${output.join(os.EOL)}`);
             return output;
         } else {

@@ -38,7 +38,7 @@ describe('restore-environment#input validation', () => {
                 err = error;
             }
             expect(res).to.be.undefined;
-            expect(err.message).to.match(new RegExp(`required and not supplied: ${inputParam.Name}`));
+            expect(err).to.match(new RegExp(`required and not supplied: ${inputParam.Name}`));
         });
     });
 
